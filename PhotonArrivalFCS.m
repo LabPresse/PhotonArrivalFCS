@@ -1843,12 +1843,12 @@ function about_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-hFig = figure('Menubar','none', 'Toolbar','none','numbertitle','off','name','ASWFCS README');
+hFig = figure('Menubar','none', 'Toolbar','none','numbertitle','off','name','PhotonArrivalFCS README');
 set(hFig,'Units','Characters','Position',get(hFig,'Position').*[1 1 0 0.12]+[0 0 80 0]);
 uicontrol(hFig, 'Style','edit',...
     'Min',0, 'Max',2, 'HorizontalAlignment','left', ...
     'Units','normalized', 'Position',[0 0 1 1], ...
-    'String',fileread('README.txt'));
+    'String',fileread('README.md'));
 movegui(hFig,'center');
 
 

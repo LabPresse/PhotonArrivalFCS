@@ -1,38 +1,32 @@
-===========================================================================
-Matlab software implementation for:
+# PhotonArrivalFCS
 
-Re-pitching single focus confocal data analysis one photon at a time with Bayesian nonparametrics.
-Proceedings of the National Academy of Sciences (2019)
-===========================================================================
+MATLAB implementation of the Bayesian nonparametrics (BNP) method for analysing single-focus confocal data one photon at a time. The package collects the MATLAB scripts, auxiliary functions and the GUI implementing the algorithms described in the publication below.
 
-Copyright (C) 2019, Meysam Tavakoli, and Steve Presse
+## Reference
 
-This software package includes several Matlab scripts and auxiliary functions, which implement the computational algorithms for the method ASWFCS described in the following publication:
+> Meysam Tavakoli, Sina Jazani, Ioannis Sgouralis, Omer M. Shafraz, Sanjeevi Sivasankar, Bryan Donaphon, Marcia Levitus and Steve Pressé,
+> "Pitching Single-Focus Confocal Data Analysis One Photon at a Time with Bayesian Nonparametrics", *Physical Review X* **10**, 011021 (2020).
+> <https://doi.org/10.1103/PhysRevX.10.011021>
 
-    Re-pitching single focus confocal data analysis one photon at a time  with Bayesian nonparametrics.
+Please cite the paper above in any publications using this software.
 
-    Meysam Tavakoli, Sina Jazani, Ioannis Sgouralis, Omer M. Shafraz, Bryan Donaphon, Sanjeevi Sivasankar, Marcia Levitus, and Steve Presse
+## Setup and Usage
 
-    Proceedings of the National Academy of Sciences (2019)
+1. To use this software in GUI form, run `PhotonArrivalFCS` in MATLAB's command window.
+2. See [Help.pdf](Help.pdf) for an annotated walkthrough of the GUI.
+3. For further details, or to report bugs in the original software, contact
+   <mtavakol@purdue.edu> or <spresse@asu.edu>.
 
-Please cite the papers above in any publications using this software.
+## MATLAB Versions
 
-===========================================================================
-Setup and Usage
-===========================================================================
-  
-1) To use this software in GUI form run: PhotonArrivalFCS in Matlab's command window.
+The source code and GUI were originally developed in MATLAB R2016a. They have since been updated and tested in MATLAB R2026a by Weiqing Xu.
 
-2) For further details or to report bugs contact: <mtavakol@purdue.edu> or <spresse@asu.edu>
+The GUI was built with GUIDE, which has been removed from MATLAB, so the original code no longer ran on current releases. The changes rebuild the `handles` structure when the figure is opened on its own, and drop the references to controls that are no longer part of `PhotonArrivalFCS.fig`.
 
-3) This software (source code and GUI) has been developed in Matlab R2016a.
-
-===========================================================================
-Copyright and License
-===========================================================================
+## Copyright and License
 
 Copyright (C) 2019, Meysam Tavakoli, and Steve Presse
 
 Permission is granted for anyone to copy, use, or modify these programs and accompanying documents for purposes of research or education, provided this copyright notice is retained, and note is made of any changes that have been made.
 
-These programs and documents are distributed without any warranty, express or implied.  As the programs were written for research purposes only, they have not been tested to the degree that would be advisable in any important application.  All use of these programs is entirely at the user's own risk.
+These programs and documents are distributed without any warranty, express or implied. As the programs were written for research purposes only, they have not been tested to the degree that would be advisable in any important application. All use of these programs is entirely at the user's own risk.
