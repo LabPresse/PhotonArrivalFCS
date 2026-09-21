@@ -1,0 +1,1842 @@
+function varargout = PhotonArrivalFCS(varargin)
+% PHOTONARRIVALFCS MATLAB code for PhotonArrivalFCS.fig
+%      PHOTONARRIVALFCS, by itself, creates a new PHOTONARRIVALFCS or raises the existing
+%      singleton*.
+%
+%      H = PHOTONARRIVALFCS returns the handle to a new PHOTONARRIVALFCS or the handle to
+%      the existing singleton*.
+%
+%      PHOTONARRIVALFCS('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in PHOTONARRIVALFCS.M with the given input arguments.
+%
+%      PHOTONARRIVALFCS('Property','Value',...) creates a new PHOTONARRIVALFCS or raises the
+%      existing singleton*.  Starting from the left, property value pairs are
+%      applied to the GUI before PhotonArrivalFCS_OpeningFcn gets called.  An
+%      unrecognized property name or invalid value makes property application
+%      stop.  All inputs are passed to PhotonArrivalFCS_OpeningFcn via varargin.
+%
+%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+%      instance to run (singleton)".
+%
+% See also: GUIDE, GUIDATA, GUIHANDLES
+
+% Edit the above text to modify the response to help PhotonArrivalFCS
+
+% Last Modified by GUIDE v2.5 30-Mar-2019 00:04:34
+
+% Begin initialization code - DO NOT EDIT
+gui_Singleton = 1;
+gui_State = struct('gui_Name',       mfilename, ...
+                   'gui_Singleton',  gui_Singleton, ...
+                   'gui_OpeningFcn', @PhotonArrivalFCS_OpeningFcn, ...
+                   'gui_OutputFcn',  @PhotonArrivalFCS_OutputFcn, ...
+                   'gui_LayoutFcn',  [] , ...
+                   'gui_Callback',   [] )                        ;
+               
+if nargin && ischar(varargin{1})
+    gui_State.gui_Callback = str2func(varargin{1})               ;
+end
+
+
+if nargout
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:}) ;
+else
+    gui_mainfcn(gui_State, varargin{:})                          ;
+end
+% End initialization code - DO NOT EDIT
+
+
+% --- Executes just before PhotonArrivalFCS is made visible.
+function PhotonArrivalFCS_OpeningFcn(hObject, eventdata, handles, varargin)
+% This function has no output args, see OutputFcn.
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% varargin   command line arguments to PhotonArrivalFCS (see VARARGIN)
+
+% Choose default command line output for PhotonArrivalFCS
+handles.output = hObject ;
+
+% Update handles structure
+guidata(hObject, handles);
+
+% UIWAIT makes PhotonArrivalFCS wait for user response (see UIRESUME)
+% uiwait(handles.figure1);
+
+
+% --- Outputs from this function are returned to the command line.
+function varargout = PhotonArrivalFCS_OutputFcn(hObject, eventdata, handles) 
+% varargout  cell array for returning output args (see VARARGOUT);
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Get default command line output from handles structure
+varargout{1} = handles.output ;
+
+
+% --- Executes on button press in Import_Exp_Trace.
+function Import_Exp_Trace_Callback(hObject, eventdata, handles)
+% hObject    handle to Import_Exp_Trace (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+answer={};
+
+    opts.Interpreter = 'tex';
+    answer = inputdlg({'Background photon emission rate (photons/s)',...
+                             'Minimum Data acquisition time (s)'    ,...
+                             'Maximum Data acquisition time (s)'    ,...
+                             'Confocal radius in xy plane (\mum)'   ,...
+                             'Confocal radius in z axis (\mum)'}    ,...
+                             'Parameters',...
+                             [1 50;1 50; 1 50; 1 50; 1 50],...
+                             {'10^3','10^-4','10^-1','0.3','1.5'},opts);
+                         
+                   
+   if length(answer)==5
+    while isempty(str2num(answer{1})) || str2num(answer{1})==0 ||...
+          isempty(str2num(answer{2})) || str2num(answer{2})==0 ||...
+          isempty(str2num(answer{3})) || str2num(answer{3})==0 ||...
+          isempty(str2num(answer{4})) || str2num(answer{4})==0 ||...
+          isempty(str2num(answer{5})) || str2num(answer{5})==0
+          
+          opts.Interpreter = 'tex';
+          answer = inputdlg({'Background photon emission rate (photons/s)',...
+                             'Minimum Data acquisition time (s)'    ,...
+                             'Maximum Data acquisition time (s)'    ,...
+                             'Confocal radius in xy plane (\mum)'   ,...
+                             'Confocal radius in z axis (\mum)'}    ,...
+                             'Parameters',...
+                             [1 50;1 50; 1 50; 1 50; 1 50],...
+                             {'10^3','10^-4','10^-1','0.3','1.5'},opts);
+                   
+    end
+    
+%     mu_back            = str2num(answer{1}) ;
+    minn               = str2num(answer{2}) ;
+    maxx               = str2num(answer{3}) ;
+    wxy                = str2num(answer{4}) ;
+    wz                 = str2num(answer{5}) ;
+    
+    
+    if  length(answer{1})==length('-')
+        handles.mu_back.String = 1000;
+    else
+        handles.mu_back.String             = answer{1};
+    end
+    handles.wxy.String                     = num2str(wxy);
+    handles.wz.String                      = num2str(wz);
+    
+    
+    choice = questdlg({'Import a single photon arrival time trace'},'Sample analysis','Yes','No','Yes');
+    
+    if  strcmp(choice,'Yes')
+  
+%     opts.Interpreter = 'tex' ;
+%     answer = inputdlg({'Minimum Data acquisition time (s)',...
+%                        'Maximum Data acquisition time (s)'},...
+%                         'Parameters',[1 60],[1 60],opts);
+%   
+%     while isempty(str2num(answer{1})) || str2num(answer{1})==0 ||...
+%           isempty(str2num(answer{2})) || str2num(answer{2})==0
+%         
+%           opts.Interpreter = 'tex';
+%           answer = inputdlg({'Minimum Data acquisition time (s)',...
+%                             'Maximum Data acquisition time (s)'},...
+%                              'Parameters',[1 60],[1 60],opts);
+%   
+%    
+%     end
+%     minn = str2num(answer{1})        ;
+%     handles.minn.String=answer{1}    ;
+    
+
+% Find the file from the directory
+
+    [filename, pathname] = uigetfile( { '*.txt','Text-files (*.txt)';...
+                                        '*.mat','MAT-files (*.mat)' }, ...
+                                        'Import a time series', ...
+                                        'MultiSelect', 'off')       ;
+
+% Check the filename                             
+    if ~isequal(filename,0)
+        
+% Load the file
+       Trace_singel_photon = load(filename,pathname);
+       
+       if length(Trace_singel_photon) < 3000   
+          text(handles.Photon_arrivals,0.4 ,0.5 ,{'No Photon is detected';'Please redo the generation with lorger time steps'})
+       else
+    handles.pushbutton10.Enable            ='on';
+    handles.edit53.Enable                  ='on';
+    
+    handles.edit35.String                  ='0';
+    handles.edit36.String                  ='0';
+    
+    handles.edit35.Enable                  ='on';
+    handles.edit36.Enable                  ='on';
+       
+% plot data
+       stem(handles.Photon_arrivals,minn+[cumsum(Trace_singel_photon)],[ones(1,length(Trace_singel_photon))])
+       xlabel(handles.Photon_arrivals,'Time (s)','Fontsize',15)
+       ylabel(handles.Photon_arrivals,'Photon arrivals', 'Fontsize',15)
+
+
+% Save the imported trace in forms of single photon arrival times and bined trace
+       Data.Trace_singel_photon = Trace_singel_photon ;
+       Data.Trace_type          = 'Time_arrival'      ;
+       
+       save('results','Data')
+       
+       end
+       
+    end 
+    
+    else
+        
+        choice1 = questdlg({'You need to to import a single photon arrival time trace'},'Sample analysis','Yes','No','Yes');
+        if  strcmp(choice1,'Yes')
+            
+            % Find the file from the directory
+
+            [filename, pathname] = uigetfile( { '*.txt','Text-files (*.txt)';...
+                                                '*.mat','MAT-files (*.mat)' }, ...
+                                                'Import a time series', ...
+                                                'MultiSelect', 'off')       ;
+               
+                % Check the filename                             
+                    if ~isequal(filename,0)
+
+                % Load the file
+                       Trace_singel_photon = load(filename,pathname);
+
+                       if length(Trace_singel_photon) < 3000   
+                          text(handles.Photon_arrivals,0.4 ,0.5 ,{'Number of Photons is not enough';'Please redo the generation with lorger time steps'})
+                       else
+                           
+                    handles.pushbutton10.Enable            ='on';
+                    handles.edit53.Enable                  ='on';
+
+                    handles.edit35.String                  ='0';
+                    handles.edit36.String                  ='0';
+
+                    handles.edit35.Enable                  ='on';
+                    handles.edit36.Enable                  ='on';
+
+                % plot data
+                       stem(handles.Photon_arrivals,minn+[cumsum(Trace_singel_photon)],[ones(1,length(Trace_singel_photon))])
+                       xlabel(handles.Photon_arrivals,'Time (s)','Fontsize',15)
+                       ylabel(handles.Photon_arrivals,'Photon arrivals', 'Fontsize',15)
+
+
+                % Save the imported trace in forms of single photon arrival times and bined trace
+                       Data.Trace_singel_photon = Trace_singel_photon ;
+                       Data.Trace_type          = 'Time_arrival'      ;
+
+                       save('results','Data')
+
+                       end
+
+                    end
+                                            
+            
+        end
+        
+            
+    
+    
+
+    end
+    
+
+    
+    
+    end
+    
+
+    
+        
+        
+
+
+
+% --- Executes on button press in Synthetic_Trace.
+function Synthetic_Trace_Callback(hObject, eventdata, handles)
+% hObject    handle to Synthetic_Trace (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+    S = dir('*.mat');                   % Collect directories
+    N = {S.name};                       % Collect Names of the text files
+    for i=1:length(N)                   % A For loop for read data
+        delete(N{i});           % Import data from the file
+    end
+    clear('S','N')
+    
+%     handles.Import_Exp_Trace.Enable              ='off' ;
+%     handles.Synthetic_Trace.Enable               ='off' ;
+%     handles.Import_Back_Trace.Enable             ='off' ;
+
+%     handles.uitable5.Data                       =   [];
+
+    
+%     handles.max_iter.Enable                     ='off'  ;
+%     handles.proposal_mu_part.Enable             ='off'  ;
+%     handles.start.Enable                        ='off'  ;
+%     handles.Continue.Enable                     ='off'  ;
+%     handles.show_results.Enable                 ='off'  ;
+%     handles.save_results.Enable                 ='off'  ;
+%     handles.clear.Enable                        ='off'  ;
+%     handles.Exit.Enable                         ='off'  ;
+    
+    
+%     handles.checkbox1_Diff_coeff.Enable         ='off';
+%     handles.checkbox2_mu_part.Enable            ='off';
+%     handles.checkbox3_N_biomolecules.Enable     ='off';
+%     handles.checkbox4_Concentration.Enable      ='off';
+%     
+%     
+%     cla(handles.Instantaneous_Emission)
+%     cla(handles.axes7)
+%     cla(handles.axes8)
+%     cla(handles.axes11)
+%     cla(handles.axes12)
+%     cla(handles.axes13)
+%     cla(handles.axes14)
+    
+    
+ answer={};
+
+    opts.Interpreter = 'tex';
+    answer = inputdlg({'Length of the Trace (Time step)',...
+                       'Minimum Data acquisition time (s)',...
+                       'Maximum Data acquisition time (s)',...
+                       ...
+                       'Confocal radius in xy plane (\mum)',...
+                       'Confocal radius in z axis (\mum)',...
+                       'Diffusion coefficent (\mum^2/s)',...
+                       'Background photon emission rate (photons/s)',...
+                       'Particle photon emission rate (photons/s)',...
+                       'Radius of the periodic boundary in xy plane (\mum)',...
+                       'Radius of the periodic boundary in z axis (\mum)',...
+                       'Number of molecules'},...
+                       'Parameters',...
+                       [1 50;1 50; 1 50; 1 50; 1 50; 1 50; 1 50; 1 50; 1 50; 1 50; 1 50],...
+                       {'10^4','10^-4','10^-1','0.3','1.5','10','1000','100000','0.5','2','10'},opts);
+                   
+ if length(answer)==11
+    while isempty(str2num(answer{1})) || str2num(answer{1})==0 ||...
+          isempty(str2num(answer{2})) || str2num(answer{2})==0 ||...
+          isempty(str2num(answer{3})) || str2num(answer{3})==0 ||...
+          isempty(str2num(answer{4})) || str2num(answer{4})==0 ||...
+          isempty(str2num(answer{5})) || str2num(answer{5})==0 ||...
+          isempty(str2num(answer{6})) || str2num(answer{6})==0 ||...
+          isempty(str2num(answer{7})) || str2num(answer{7})==0 ||...
+          isempty(str2num(answer{8})) || str2num(answer{8})==0 ||...
+          isempty(str2num(answer{9})) || str2num(answer{9})==0 ||...
+          isempty(str2num(answer{10}))|| str2num(answer{10})==0||...
+          isempty(str2num(answer{11}))|| str2num(answer{11})==0
+          
+          opts.Interpreter = 'tex';
+          answer = inputdlg({'Length of the Trace (Time step)',...
+                             'Minimum Data acquisition time (s)',...
+                             'Maximum Data acquisition time (s)',...
+                             ...
+                             'Confocal radius in xy plane (\mum)',...
+                             'Confocal radius in z axis (\mum)',...
+                             'Diffusion coefficent (\mum^2/s)',...
+                             'Background photon emission rate(photons/s)',...
+                             'Particle photon emission rate (photons/s)',...
+                             'Radius of the periodic boundary in xy plane (\mum)',...
+                             'Radius of the periodic boundary in z axis (\mum)',...
+                             'Number of molecules'},...
+                             'Parameters',...
+                             [1 50;1 50; 1 50; 1 50; 1 50; 1 50; 1 50; 1 50; 1 50; 1 50; 1 50]  ,...
+                             {'10^4','10^-4', '10^-1','0.3','1.5','10','1000','100000','0.5','2','10'},opts);
+    end
+    
+    Length_signal      = str2num(answer{1}) ;
+    minn               = str2num(answer{2}) ;
+    maxx               = str2num(answer{3}) ;
+    wxy                = str2num(answer{4}) ;
+    wz                 = str2num(answer{5}) ;
+    Diffusion          = str2num(answer{6}) ;
+    Lambda_b_real      = str2num(answer{7}) ;
+    Lambda_P_real      = str2num(answer{8}) ;
+    Rxy                = str2num(answer{9}) ;
+    Rz                 = str2num(answer{10});
+    Number_particles   = str2num(answer{11});
+   
+    
+    choice = questdlg('Please choose the Point Spread Function:','Point Spread Function','Gaussian','');
+    
+    if     strcmp(choice,'Gaussian')
+           handles.edit51.String = 'Gaussian' ;        
+
+    else
+           handles.edit51.String = 'NAN'      ;
+           handles.Import_Exp_Trace.Enable            ='on';
+           handles.Synthetic_Trace.Enable             ='on';
+           handles.Import_Back_Trace.Enable           ='on';
+    end 
+    
+    handles.minn.String                    = answer{2}   ;
+    handles.maxx.String                    = answer{3}   ;
+    handles.diff_coeff.String              = answer{6}   ;
+    handles.mu_synth_back.String           = answer{7}   ;  
+    handles.mu_part.String                 = answer{8}   ;
+    handles.N_biomolecules.String          = answer{11}  ;
+    handles.wxy.String                     = num2str(wxy);
+    handles.wz.String                      = num2str(wz) ;
+    
+    
+    
+
+    
+    
+% sample generator function, you should direct it to the same folder
+
+[ Time , emission_rate , Trace_singel_photon , X0, XX , Y0 , YY , Z0 , ZZ] = Sample_Generator( ...
+...
+...
+minn, maxx, Diffusion , Lambda_P_real , Lambda_b_real , Rxy , Rxy , Rz , wxy , wz , Number_particles , Length_signal );
+ 
+
+
+if length(Trace_singel_photon) < 1500   
+    text(handles.Photon_arrivals,0.4 ,0.5 ,{'No Photon is detected';'Please redo the generation with lorger time steps'})
+else
+    handles.pushbutton10.Enable            ='on';
+    handles.edit53.Enable                  ='on';
+    
+    handles.edit35.String                  ='0' ;
+    handles.edit36.String                  ='0' ;
+    
+    handles.edit35.Enable                  ='on';
+    handles.edit36.Enable                  ='on';
+
+
+
+
+stem(handles.Photon_arrivals,minn+[cumsum(Trace_singel_photon)],[ones(1,length(Trace_singel_photon))])
+ xlabel(handles.Photon_arrivals,'Time (s)')
+ ylabel(handles.Photon_arrivals,'Photon arrivals')
+ 
+
+
+Data.Trace_singel_photon = Trace_singel_photon  ;
+% Data.Trace_uniform_bin   = Trace_uniform_bin    ;
+Data.Trace_type          = 'Time_arrival'       ;
+
+
+save('results','Data')
+
+
+ for i=1:Number_particles
+     plot(handles.Instantaneous_Emission, Time(2:end),emission_rate(2:end,i),'.-')
+     %hold on
+     hold (handles.Instantaneous_Emission,'on')
+ end
+
+xlabel(handles.Instantaneous_Emission,'Time (s)')
+ylabel(handles.Instantaneous_Emission,'Instantaneous Emission')
+
+end
+
+   handles.clear.Enable                   ='on';
+   
+end
+
+   handles.Import_Exp_Trace.Enable              ='on';
+   handles.Synthetic_Trace.Enable               ='on';
+   handles.Import_Back_Trace.Enable             ='on';
+%    handles.pushbutton32.Enable                  ='on';
+%    handles.pushbutton33.Enable                  ='on';
+
+
+    
+
+
+
+function edit8_Callback(hObject, eventdata, handles)
+% hObject    handle to edit8 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit8 as text
+%        str2double(get(hObject,'String')) returns contents of edit8 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit8_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit8 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit9_Callback(hObject, eventdata, handles)
+% hObject    handle to edit9 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit9 as text
+%        str2double(get(hObject,'String')) returns contents of edit9 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit9_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit9 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+
+function edit10_Callback(hObject, eventdata, handles)
+% hObject    handle to edit10 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit10 as text
+%        str2double(get(hObject,'String')) returns contents of edit10 as a double
+
+
+
+% --- Executes during object creation, after setting all properties.
+function edit10_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit10 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit40_Callback(hObject, eventdata, handles)
+% hObject    handle to edit40 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit40 as text
+%        str2double(get(hObject,'String')) returns contents of edit40 as a double
+
+
+
+% --- Executes during object creation, after setting all properties.
+function edit40_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit40 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit39_Callback(hObject, eventdata, handles)
+% hObject    handle to edit39 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit39 as text
+%        str2double(get(hObject,'String')) returns contents of edit39 as a double
+
+
+
+% --- Executes during object creation, after setting all properties.
+function edit39_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit39 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit36_Callback(hObject, eventdata, handles)
+% hObject    handle to edit36 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit36 as text
+%        str2double(get(hObject,'String')) returns contents of edit36 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit36_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit36 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit35_Callback(hObject, eventdata, handles)
+% hObject    handle to edit35 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit35 as text
+%        str2double(get(hObject,'String')) returns contents of edit35 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit35_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit35 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit34_Callback(hObject, eventdata, handles)
+% hObject    handle to edit34 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit34 as text
+%        str2double(get(hObject,'String')) returns contents of edit34 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit34_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit34 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit33_Callback(hObject, eventdata, handles)
+% hObject    handle to edit33 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit33 as text
+%        str2double(get(hObject,'String')) returns contents of edit33 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit33_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit33 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit32_Callback(hObject, eventdata, handles)
+% hObject    handle to edit32 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit32 as text
+%        str2double(get(hObject,'String')) returns contents of edit32 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit32_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit32 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit31_Callback(hObject, eventdata, handles)
+% hObject    handle to edit31 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit31 as text
+%        str2double(get(hObject,'String')) returns contents of edit31 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit31_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit31 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit25_Callback(hObject, eventdata, handles)
+% hObject    handle to edit25 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit25 as text
+%        str2double(get(hObject,'String')) returns contents of edit25 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit25_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit25 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit26_Callback(hObject, eventdata, handles)
+% hObject    handle to edit26 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit26 as text
+%        str2double(get(hObject,'String')) returns contents of edit26 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit26_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit26 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit27_Callback(hObject, eventdata, handles)
+% hObject    handle to edit27 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit27 as text
+%        str2double(get(hObject,'String')) returns contents of edit27 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit27_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit27 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit37_Callback(hObject, eventdata, handles)
+% hObject    handle to edit37 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit37 as text
+%        str2double(get(hObject,'String')) returns contents of edit37 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit37_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit37 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit38_Callback(hObject, eventdata, handles)
+% hObject    handle to edit38 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit38 as text
+%        str2double(get(hObject,'String')) returns contents of edit38 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit38_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit38 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit20_Callback(hObject, eventdata, handles)
+% hObject    handle to edit20 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit20 as text
+%        str2double(get(hObject,'String')) returns contents of edit20 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit20_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit20 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit21_Callback(hObject, eventdata, handles)
+% hObject    handle to edit21 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit21 as text
+%        str2double(get(hObject,'String')) returns contents of edit21 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit21_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit21 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit22_Callback(hObject, eventdata, handles)
+% hObject    handle to edit22 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit22 as text
+%        str2double(get(hObject,'String')) returns contents of edit22 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit22_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit22 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function alpha_part_Callback(hObject, eventdata, handles)
+% hObject    handle to alpha_part (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of alpha_part as text
+%        str2double(get(hObject,'String')) returns contents of alpha_part as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function alpha_part_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to alpha_part (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function beta_part_Callback(hObject, eventdata, handles)
+% hObject    handle to beta_part (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of beta_part as text
+%        str2double(get(hObject,'String')) returns contents of beta_part as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function beta_part_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to beta_part (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Ini_pos_variance_xy_Callback(hObject, eventdata, handles)
+% hObject    handle to Ini_pos_variance_xy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Ini_pos_variance_xy as text
+%        str2double(get(hObject,'String')) returns contents of Ini_pos_variance_xy as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Ini_pos_variance_xy_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Ini_pos_variance_xy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Ini_pos_mean_z_Callback(hObject, eventdata, handles)
+% hObject    handle to Ini_pos_mean_z (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Ini_pos_mean_z as text
+%        str2double(get(hObject,'String')) returns contents of Ini_pos_mean_z as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Ini_pos_mean_z_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Ini_pos_mean_z (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Ini_pos_mean_xy_Callback(hObject, eventdata, handles)
+% hObject    handle to Ini_pos_mean_xy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Ini_pos_mean_xy as text
+%        str2double(get(hObject,'String')) returns contents of Ini_pos_mean_xy as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Ini_pos_mean_xy_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Ini_pos_mean_xy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function Ini_pos_variance_z_Callback(hObject, eventdata, handles)
+% hObject    handle to Ini_pos_variance_z (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Ini_pos_variance_z as text
+%        str2double(get(hObject,'String')) returns contents of Ini_pos_variance_z as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Ini_pos_variance_z_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Ini_pos_variance_z (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function beta_load_Callback(hObject, eventdata, handles)
+% hObject    handle to beta_load (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of beta_load as text
+%        str2double(get(hObject,'String')) returns contents of beta_load as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function beta_load_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to beta_load (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function alpha_load_Callback(hObject, eventdata, handles)
+% hObject    handle to alpha_load (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of alpha_load as text
+%        str2double(get(hObject,'String')) returns contents of alpha_load as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function alpha_load_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to alpha_load (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function max_N_biomole_Callback(hObject, eventdata, handles)
+% hObject    handle to max_N_biomole (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of max_N_biomole as text
+%        str2double(get(hObject,'String')) returns contents of max_N_biomole as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function max_N_biomole_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to max_N_biomole (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function N_biomolecules_Callback(hObject, eventdata, handles)
+% hObject    handle to N_biomolecules (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of N_biomolecules as text
+%        str2double(get(hObject,'String')) returns contents of N_biomolecules as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function N_biomolecules_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to N_biomolecules (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function mu_part_Callback(hObject, eventdata, handles)
+% hObject    handle to mu_part (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of mu_part as text
+%        str2double(get(hObject,'String')) returns contents of mu_part as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function mu_part_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to mu_part (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function diff_coeff_Callback(hObject, eventdata, handles)
+% hObject    handle to diff_coeff (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of diff_coeff as text
+%        str2double(get(hObject,'String')) returns contents of diff_coeff as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function diff_coeff_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to diff_coeff (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function beta_D_Callback(hObject, eventdata, handles)
+% hObject    handle to beta_D (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of beta_D as text
+%        str2double(get(hObject,'String')) returns contents of beta_D as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function beta_D_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to beta_D (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function alpha_D_Callback(hObject, eventdata, handles)
+% hObject    handle to alpha_D (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of alpha_D as text
+%        str2double(get(hObject,'String')) returns contents of alpha_D as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function alpha_D_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to alpha_D (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function wxy_Callback(hObject, eventdata, handles)
+% hObject    handle to wxy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of wxy as text
+%        str2double(get(hObject,'String')) returns contents of wxy as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function wxy_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to wxy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function wz_Callback(hObject, eventdata, handles)
+% hObject    handle to wz (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of wz as text
+%        str2double(get(hObject,'String')) returns contents of wz as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function wz_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to wz (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+
+function mu_back_Callback(hObject, eventdata, handles)
+% hObject    handle to mu_back (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of mu_back as text
+%        str2double(get(hObject,'String')) returns contents of mu_back as a double
+
+
+
+% --- Executes during object creation, after setting all properties.
+
+
+function mu_back_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to mu_back (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+
+function mu_synth_back_Callback(hObject, eventdata, handles)
+% hObject    handle to mu_synth_back (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of mu_synth_back as text
+%        str2double(get(hObject,'String')) returns contents of mu_synth_back as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function mu_synth_back_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to mu_synth_back (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in Import_Exp_Trace.
+function pushbutton4_Callback(hObject, eventdata, handles)
+% hObject    handle to Import_Exp_Trace (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in Import_Back_Trace.
+function pushbutton5_Callback(hObject, eventdata, handles)
+% hObject    handle to Import_Back_Trace (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in Synthetic_Trace.
+function pushbutton6_Callback(hObject, eventdata, handles)
+% hObject    handle to Synthetic_Trace (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+
+function edit62_Callback(hObject, eventdata, handles)
+% hObject    handle to mu_synth_back (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of mu_synth_back as text
+%        str2double(get(hObject,'String')) returns contents of mu_synth_back as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit62_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to mu_synth_back (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in checkbox1_Diff_coeff.
+function checkbox1_Diff_coeff_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox1_Diff_coeff (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox1_Diff_coeff
+
+
+% --- Executes on button press in checkbox2_mu_part.
+function checkbox2_mu_part_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox2_mu_part (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox2_mu_part
+
+
+% --- Executes on button press in checkbox3_N_biomolecules.
+function checkbox3_N_biomolecules_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox3_N_biomolecules (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox3_N_biomolecules
+
+
+% --- Executes on button press in checkbox4_Concentration.
+function checkbox4_Concentration_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox4_Concentration (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox4_Concentration
+
+
+% --- Executes on button press in show_results.
+function show_results_Callback(hObject, eventdata, handles)
+% hObject    handle to show_results (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in save_results.
+function save_results_Callback(hObject, eventdata, handles)
+% hObject    handle to save_results (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes during object creation, after setting all properties.
+function Max_iterations_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Max_iterations (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes during object creation, after setting all properties.
+function Proposal_particle_emission_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Proposal_particle_emission (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes during object creation, after setting all properties.
+function Normalized_distances_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Normalized_distances (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+
+function max_iter_Callback(hObject, eventdata, handles)
+% hObject    handle to max_iter (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of max_iter as text
+%        str2double(get(hObject,'String')) returns contents of max_iter as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function max_iter_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to max_iter (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function proposal_mu_part_Callback(hObject, eventdata, handles)
+% hObject    handle to proposal_mu_part (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of proposal_mu_part as text
+%        str2double(get(hObject,'String')) returns contents of proposal_mu_part as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function proposal_mu_part_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to proposal_mu_part (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function concen_radious_Callback(hObject, eventdata, handles)
+% hObject    handle to concen_radious (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of concen_radious as text
+%        str2double(get(hObject,'String')) returns contents of concen_radious as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function concen_radious_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to concen_radious (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in start.
+function start_Callback(hObject, eventdata, handles)
+% hObject    handle to start (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+%     handles.Import_Exp_Trace.Enable              ='off' ;
+%     handles.Synthetic_Trace.Enable               ='off' ;
+%     handles.Import_Back_Trace.Enable             ='off' ;
+
+%     handles.uitable5.Data                       =   [];
+
+    
+%     handles.max_iter.Enable                     ='off'  ;
+%     handles.proposal_mu_part.Enable             ='off'  ;
+%     handles.start.Enable                        ='off'  ;
+%     handles.Continue.Enable                     ='off'  ;
+%     handles.show_results.Enable                 ='off'  ;
+%     handles.save_results.Enable                 ='off'  ;
+%     handles.clear.Enable                        ='off'  ;
+%     handles.Exit.Enable                         ='off'  ;
+    
+    
+%     handles.checkbox1_Diff_coeff.Enable         ='off';
+%     handles.checkbox2_mu_part.Enable            ='off';
+%     handles.checkbox3_N_biomolecules.Enable     ='off';
+%     handles.checkbox4_Concentration.Enable      ='off';
+    
+    
+%     cla(handles.Instantaneous_Emission)
+%     cla(handles.axes7)
+%     cla(handles.axes8)
+%     cla(handles.axes11)
+%     cla(handles.axes12)
+%     cla(handles.axes13)
+%     cla(handles.axes14)
+    
+
+load('results.mat');
+
+     
+     
+     len = length(Data.Trace_singel_photon)                                          ;
+
+
+         Data.x     = randn(str2num(handles.max_N_biomole.String),len)  ;
+         Data.y     = randn(str2num(handles.max_N_biomole.String),len)  ;
+         Data.z     = randn(str2num(handles.max_N_biomole.String),len)  ;
+     
+     
+     
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Initial vslues %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+     
+     Data.D           = 10                             ;
+     Data.Lambda_P    = 100000                         ;
+     Data.Lambda_b    = 1000                           ;
+     
+     Data.Prior_Lambda_b_alpha =   10                  ;
+     Data.Prior_Lambda_b_beta  =   1000                ;
+     Data.Lambda_b_alpha       =   200                 ;
+     
+%      Data.b              = zeros(len,str2num(handles.max_N_biomole.String),1)      ; 
+%      Data.q              = zeros(len,1)                                               ;
+     Data.b              = ones(str2num(handles.max_N_biomole.String),1)   ; 
+     Data.q              = ones(str2num(handles.max_N_biomole.String),1)   ;
+     
+%      Data.concentration  = zeros(len, 1000 ,max(sign_siz),length(str2num(handles.concen_radious.String)))     ;
+     Data.concentration  = zeros(1, len,length(str2num(handles.concen_radious.String)))     ;
+
+     
+     
+  [ Data.D         , Data.x                        , Data.y                 , Data.z                         , ...
+    Data.Lambda_P  , Data.acceptance_rate_lambdaP  , Data.Lambda_b          , Data.acceptance_rate_lambda_b  , ...
+    Data.b         , Data.q                        , Data.acceptance_rate_b , Data.concentration          ] =  ...
+...
+...
+Gibbs_sampling_function_withNoise_Continous2( ...
+...
+...
+Data.Trace_singel_photon                 ,  str2num(handles.max_iter.String)                     ,  ...
+str2num(handles.alpha_D.String)          ,  str2num(handles.beta_D.String)                       ,  ...
+Data.D                                   ,  Data.Lambda_P                                        ,  ...
+Data.Lambda_b                            ,  str2num(handles.wxy.String)                          ,  ...
+str2num(handles.wz.String)               ,  str2num(handles.max_N_biomole.String)                ,  ...
+str2num(handles.alpha_load.String)       ,  str2num(handles.beta_load.String)                    ,  ...
+Data.b                                   ,  Data.q                                               ,  ...
+str2num(handles.Ini_pos_mean_xy.String)  ,  str2num(handles.Ini_pos_variance_xy.String)          ,  ... 
+str2num(handles.Ini_pos_mean_z.String)   ,  str2num(handles.Ini_pos_variance_z.String)           ,  ...
+str2num(handles.alpha_part.String)       ,  str2num(handles.beta_part.String)                    ,  ...
+str2num(handles.proposal_mu_part.String) ,  Data.Prior_Lambda_b_alpha                            ,  ...
+Data.Prior_Lambda_b_beta                 ,  Data.Lambda_b_alpha                                  ,  ...
+Data.x                                   ,  Data.y                                               ,  ...
+Data.z                                   ,  Data.concentration                                   ,  ...
+str2num(handles.concen_radious.String)  ); 
+           
+  
+  
+     plot(handles.axes13,1:1:length(Data.Lambda_P),Data.Lambda_P)
+     histogram(handles.axes14,Data.Lambda_P,'Normalization','pdf','Orientation','horizontal')
+     
+     
+       
+     
+    save('results' , 'Data'   )
+             
+    plot(handles.axes7,1:1:length(Data.Lambda_P),Data.D)
+    xlabel(handles.axes7,'Iteration')
+    ylabel(handles.axes7,'log_{10} Diff. coeff. (\mum^2/s)')
+    xlim(handles.axes7,[0 length(Data.Lambda_P)])
+    
+    
+  
+    plot(handles.axes11,1:1:length(Data.Lambda_P),sum(Data.b,1))
+    
+    xlabel(handles.axes11,'Iteration')
+    ylabel(handles.axes11,'Number of active molecules')
+    ylim(handles.axes11,[0 str2num(handles.max_N_biomole.String)])
+    xlim(handles.axes11,[0 length(Data.Lambda_P)])
+    
+
+    
+    xlabel(handles.axes13,'Iteration')
+    ylabel(handles.axes13,{'Particle photon emission rate';'(photons/s)'})
+    xlim(handles.axes13,[0 length(Data.Lambda_P)])
+    
+    
+    
+    histogram(handles.axes8,Data.D,'Normalization','pdf','Orientation','horizontal')
+    handles.axes8.XAxisLocation = 'top';
+    ylim(handles.axes8,[0 max(Data.D)])
+    handles.axes8.YAxisLocation = 'right';
+    set(handles.axes8,'yscale','log') 
+    
+    
+   
+    histogram(handles.axes12,sum(Data.b,1),'Normalization','pdf','Orientation','horizontal')
+
+    handles.axes12.YTick = [];
+    handles.axes12.XAxisLocation = 'top';
+    ylim(handles.axes12,[0 str2num(handles.max_N_biomole.String)])
+    
+
+    handles.axes14.YTick = [];
+    handles.axes14.XAxisLocation = 'top';
+    ylim(handles.axes14,[0 max(Data.Lambda_P)])
+    
+    drawnow
+    
+
+     
+     
+
+% --- Executes on button press in Continue.
+function Continue_Callback(hObject, eventdata, handles)
+% hObject    handle to Continue (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+    
+     
+    load('results.mat');
+   
+answer={};
+
+    opts.Interpreter = 'tex';
+    answer = inputdlg({'Number of extra iterations'},...
+                        'Please consider the Running time!',...
+                        [1 60],{num2str(length(Data.D)-1)},opts);
+                    
+  if length(answer)==1
+    while isempty(str2num(answer{1})) || str2num(answer{1})==0
+           opts.Interpreter = 'tex';
+           answer = inputdlg({'Number of extra iterations'},...
+                              'Please choose a number greater than 0!',...
+                              [1 60],{num2str(length(Data.D)-1)},opts);
+    end
+    
+    
+    
+    handles.max_iter.String = num2str(length(Data.D)-1+str2num(answer{1}));
+    
+%     if      sum(handles.pushbutton28.String)==sum('PSF (Gaussian)')          
+%              PSF_Func=1;     
+%     end
+    
+     
+  [ Data.D         , Data.x                        , Data.y                 , Data.z                         , ...
+    Data.Lambda_P  , Data.acceptance_rate_lambdaP  , Data.Lambda_b          , Data.acceptance_rate_lambda_b  , ...
+    Data.b         , Data.q                        , Data.acceptance_rate_b , Data.concentration          ] =  ...
+...
+...
+Gibbs_sampling_function_withNoise_Continous2( ...
+...
+...
+Data.Trace_singel_photon                 ,  str2num(answer{1})                                   ,  ...
+str2num(handles.alpha_D.String)          ,  str2num(handles.beta_D.String)                       ,  ...
+Data.D                                   ,  Data.Lambda_P                                        ,  ...
+Data.Lambda_b                            ,  str2num(handles.wxy.String)                          ,  ...
+str2num(handles.wz.String)               ,  str2num(handles.max_N_biomole.String)                ,  ...
+str2num(handles.alpha_load.String)       ,  str2num(handles.beta_load.String)                    ,  ...
+Data.b                                   ,  Data.q                                               ,  ...
+str2num(handles.Ini_pos_mean_xy.String)  ,  str2num(handles.Ini_pos_variance_xy.String)          , ...
+str2num(handles.Ini_pos_mean_z.String)   ,  str2num(handles.Ini_pos_variance_z.String)           , ... 
+str2num(handles.alpha_part.String)       ,  str2num(handles.beta_part.String)                    ,  ...
+str2num(handles.proposal_mu_part.String) ,  Data.Prior_Lambda_b_alpha                            ,  ...
+Data.Prior_Lambda_b_beta                 ,  Data.Lambda_b_alpha                                  ,  ...
+Data.x                                   ,  Data.y                                               ,  ...
+Data.z                                   ,  Data.concentration                                   ,  ...
+str2num(handles.concen_radious.String)  ); 
+           
+  
+
+
+     hold (handles.axes14,'off')
+     histogram(handles.axes14,Data.Lambda_P,'Normalization','pdf','Orientation','horizontal')
+     plot(handles.axes13,1:1:length(Data.Lambda_P),Data.Lambda_P)
+        
+     
+    save('results' , 'Data'   )
+    
+    
+    plot(handles.axes7,1:1:length(Data.Lambda_P),Data.D)
+    xlabel(handles.axes7,['Iteration'])
+    ylabel(handles.axes7,'log_{10} Diff. coeff. (\mum^2/s)')
+    xlim(handles.axes7,[0 length(Data.Lambda_P)])
+    ylim(handles.axes7,[0 max(Data.D)])
+    set(handles.axes7,'yscale','log') 
+    
+    plot(handles.axes11,1:1:length(Data.Lambda_P),sum(Data.b,1))
+    xlabel(handles.axes11,['Iteration'])
+    ylabel(handles.axes11,'Number of active molecules')
+    ylim(handles.axes11,[0 str2num(handles.max_N_biomole.String)])
+    xlim(handles.axes11,[0 length(Data.Lambda_P)])
+    
+    
+    
+    xlabel(handles.axes13,'Iteration')
+    ylabel(handles.axes13,{'Particle photon emission rate';'(photons/s)'})
+    xlim(handles.axes13,[0 length(Data.Lambda_P)])
+    
+    
+    bnd = logspace(log10(min(Data.D))-1,log10(max(Data.D))+1,100);
+    
+    
+    histogram(handles.axes8,Data.D,bnd,'Normalization','pdf','Orientation','horizontal')
+    handles.axes8.XAxisLocation = 'top';
+    ylim(handles.axes8,[0 max(Data.D)])
+    handles.axes8.YTick = [];
+    handles.axes8.XTick = [];
+    handles.axes8.YAxisLocation = 'right';
+    set(handles.axes8,'yscale','log') 
+    
+    hold (handles.axes12,'off')
+    histogram(handles.axes12,sum(Data.b,1),'Normalization','pdf','Orientation','horizontal')
+    handles.axes12.YTick = [];
+    handles.axes12.XTick = [];
+    handles.axes12.XAxisLocation = 'top';
+    ylim(handles.axes12,[0 str2num(handles.max_N_biomole.String)])
+    
+    
+    handles.axes14.YTick = [];
+    handles.axes14.XTick = [];
+    handles.axes14.XAxisLocation = 'top';
+    ylim(handles.axes14,[0 max(Data.Lambda_P)])
+    
+    drawnow
+    
+  end 
+    
+     
+  
+
+    
+
+
+% --- Executes on button press in Exit.
+function Exit_Callback(hObject, eventdata, handles)
+% hObject    handle to Exit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+S = dir('*.mat');                   % Collect directories
+N = {S.name};                       % Collect Names of the text files
+for i=1:length(N)                   % A For loop for read data
+    delete(N{i});           % Import data from the file
+end
+
+clear all;
+clc;
+close all;
+
+
+
+
+% --- Executes on button press in clear.
+function clear_Callback(hObject, eventdata, handles)
+% hObject    handle to clear (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+clc;
+    S = dir('*.mat');                   % Collect directories
+    N = {S.name};                       % Collect Names of the text files
+    for i=1:length(N)                   % A For loop for read data
+        delete(N{i});           % Import data from the file
+    end
+    clear('S','N')
+    
+    clear all;
+
+  
+    
+
+% --- Executes on button press in about.
+function about_Callback(hObject, eventdata, handles)
+% hObject    handle to about (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+hFig = figure('Menubar','none', 'Toolbar','none','numbertitle','off','name','ASWFCS README');
+set(hFig,'Units','Characters','Position',get(hFig,'Position').*[1 1 0 0.12]+[0 0 80 0]);
+uicontrol(hFig, 'Style','edit',...
+    'Min',0, 'Max',2, 'HorizontalAlignment','left', ...
+    'Units','normalized', 'Position',[0 0 1 1], ...
+    'String',fileread('README.txt'));
+movegui(hFig,'center');
+
+
+
+% --- Executes on button press in help.
+function help_Callback(hObject, eventdata, handles)
+% hObject    handle to help (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+open('Help.pdf')
+
